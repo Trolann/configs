@@ -4,7 +4,7 @@
 # It will point to/mirror a public GitHub repository
 
 # GitHub repository URL
-GITHUB_REPO="https://github.com/trolann/your-repo-name.git"
+GITHUB_REPO="https://github.com/trolann/configs.git"
 REPO_DIR="$HOME/.config/configs"
 
 # Function to securely read password
