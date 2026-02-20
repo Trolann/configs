@@ -1,0 +1,157 @@
+#!/bin/bash
+set -e
+
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LINUX_DIR="$REPO_DIR/linux"
+WINDOWS_DIR="$REPO_DIR/windows"
+
+GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
+log()  { echo -e "${GREEN}[+]${NC} $1"; }
+warn() { echo -e "${YELLOW}[!]${NC} $1"; }
+err()  { echo -e "${RED}[x]${NC} $1"; }
+
+is_wsl() { grep -qi microsoft /proc/version 2>/dev/null; }
+
+win_home_wsl() {
+    local win_home
+    win_home=$(cmd.exe /c "echo %USERPROFILE%" 2>/dev/null | tr -d '\r')
+    wslpath "$win_home" 2>/dev/null
+}
+
+symlink() {
+    local src="$1" dst="$2"
+    if [ -e "$dst" ] && [ ! -L "$dst" ]; then
+        warn "Backing up $dst -> $dst.bak"
+        mv "$dst" "$dst.bak"
+    elif [ -L "$dst" ]; then
+        rm "$dst"
+    fi
+    ln -s "$src" "$dst"
+    log "Linked $dst"
+}
+
+setup_linux() {
+    log "Setting up Linux dotfiles..."
+
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+        log "Installing oh-my-zsh..."
+        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    fi
+
+    if [ ! -d "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions" ]; then
+        log "Installing zsh-autosuggestions..."
+        git clone https://github.com/zsh-users/zsh-autosuggestions \
+            "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
+    fi
+
+    symlink "$LINUX_DIR/.zshrc"     "$HOME/.zshrc"
+    symlink "$LINUX_DIR/.gitconfig" "$HOME/.gitconfig"
+
+    log "Linux dotfiles done."
+}
+
+setup_windows() {
+    if ! is_wsl; then
+        err "Not running in WSL, skipping Windows setup."
+        return
+    fi
+
+    local wh
+    wh=$(win_home_wsl)
+    if [ -z "$wh" ]; then
+        err "Could not detect Windows home directory."
+        return
+    fi
+
+    log "Windows home: $wh"
+    log "Setting up Windows dotfiles..."
+
+    cp "$WINDOWS_DIR/.wezterm.lua"           "$wh/.wezterm.lua"
+    log "Copied .wezterm.lua"
+
+    mkdir -p "$wh/.glzr/glazewm"
+    cp "$WINDOWS_DIR/glazewm/config.yaml"    "$wh/.glzr/glazewm/config.yaml"
+    log "Copied glazewm/config.yaml"
+
+    mkdir -p "$wh/.glzr/zebar"
+    cp "$WINDOWS_DIR/zebar/config.yaml"      "$wh/.glzr/zebar/config.yaml"
+    cp "$WINDOWS_DIR/zebar/script.js"        "$wh/.glzr/zebar/script.js"
+    cp "$WINDOWS_DIR/zebar/settings.json"    "$wh/.glzr/zebar/settings.json"
+    cp "$WINDOWS_DIR/zebar/start.bat"        "$wh/.glzr/zebar/start.bat"
+    log "Copied zebar configs"
+
+    warn "Windows configs copied. Run './install.sh sync-windows' to pull changes back into the repo."
+    log "Windows dotfiles done."
+}
+
+setup_macos() {
+    if [[ "$(uname)" != "Darwin" ]]; then
+        err "Not running on macOS, skipping."
+        return
+    fi
+
+    log "Setting up macOS dotfiles..."
+    # TODO: add macOS configs to macos/ and symlink them here
+    warn "No macOS configs yet — add them to macos/ and update this function."
+}
+
+sync_windows() {
+    if ! is_wsl; then
+        err "Not running in WSL."
+        return
+    fi
+
+    local wh
+    wh=$(win_home_wsl)
+    if [ -z "$wh" ]; then
+        err "Could not detect Windows home directory."
+        return
+    fi
+
+    log "Syncing Windows configs into repo..."
+
+    cp "$wh/.wezterm.lua"                    "$WINDOWS_DIR/.wezterm.lua"
+    cp "$wh/.glzr/glazewm/config.yaml"       "$WINDOWS_DIR/glazewm/config.yaml"
+    cp "$wh/.glzr/zebar/config.yaml"         "$WINDOWS_DIR/zebar/config.yaml"
+    cp "$wh/.glzr/zebar/script.js"           "$WINDOWS_DIR/zebar/script.js"
+    cp "$wh/.glzr/zebar/settings.json"       "$WINDOWS_DIR/zebar/settings.json"
+    cp "$wh/.glzr/zebar/start.bat"           "$WINDOWS_DIR/zebar/start.bat"
+
+    log "Synced. Run 'git diff' to review, then commit."
+}
+
+main() {
+    echo "================================"
+    echo "     Dotfiles Installer"
+    echo "================================"
+    echo ""
+
+    case "${1:-}" in
+        linux)         setup_linux;   exit 0 ;;
+        windows)       setup_windows; exit 0 ;;
+        macos)         setup_macos;   exit 0 ;;
+        sync-windows)  sync_windows;  exit 0 ;;
+    esac
+
+    echo "What would you like to set up?"
+    echo "  1) Linux dotfiles"
+    if is_wsl; then
+        echo "  2) Windows dotfiles (WezTerm, GlazeWM, Zebar)"
+        echo "  3) Both (Linux + Windows)"
+    fi
+    if [[ "$(uname)" == "Darwin" ]]; then
+        echo "  4) macOS dotfiles"
+    fi
+    echo ""
+    read -rp "Choice: " choice
+
+    case "$choice" in
+        1) setup_linux ;;
+        2) setup_windows ;;
+        3) setup_linux; setup_windows ;;
+        4) setup_macos ;;
+        *) err "Invalid choice."; exit 1 ;;
+    esac
+}
+
+main "$@"

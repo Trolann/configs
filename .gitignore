@@ -1,10 +1,5 @@
-tt.*
-.tests
-doc/tags
-debug
-.repro
-foo.*
+.oh-my-zsh/
 *.log
-data
-github-copilot/
-github-copilot/
+*.bak
+.tests
+debug

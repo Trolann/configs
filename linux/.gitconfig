@@ -1,0 +1,7 @@
+[user]
+	email = mathisentc@gmail.com
+	name = Trevor Mathisen
+[init]
+	defaultBranch = main
+[push]
+	autoSetupRemote = True
