@@ -44,8 +44,9 @@ setup_linux() {
             "$HOME/.oh-my-zsh/custom/plugins/zsh-autosuggestions"
     fi
 
-    symlink "$LINUX_DIR/.zshrc"     "$HOME/.zshrc"
-    symlink "$LINUX_DIR/.gitconfig" "$HOME/.gitconfig"
+    symlink "$LINUX_DIR/.zshrc"      "$HOME/.zshrc"
+    symlink "$LINUX_DIR/.gitconfig"  "$HOME/.gitconfig"
+    symlink "$REPO_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
 
     log "Linux dotfiles done."
 }
@@ -66,7 +67,7 @@ setup_windows() {
     log "Windows home: $wh"
     log "Setting up Windows dotfiles..."
 
-    cp "$WINDOWS_DIR/.wezterm.lua"           "$wh/.wezterm.lua"
+    cp "$REPO_DIR/.wezterm.lua"              "$wh/.wezterm.lua"
     log "Copied .wezterm.lua"
 
     mkdir -p "$wh/.glzr/glazewm"
@@ -91,8 +92,11 @@ setup_macos() {
     fi
 
     log "Setting up macOS dotfiles..."
-    # TODO: add macOS configs to macos/ and symlink them here
-    warn "No macOS configs yet — add them to macos/ and update this function."
+
+    symlink "$REPO_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
+
+    # TODO: add macOS-specific configs to macos/ and symlink them here
+    warn "Only WezTerm configured for macOS so far — add more to macos/ as needed."
 }
 
 sync_windows() {
@@ -110,7 +114,7 @@ sync_windows() {
 
     log "Syncing Windows configs into repo..."
 
-    cp "$wh/.wezterm.lua"                    "$WINDOWS_DIR/.wezterm.lua"
+    cp "$wh/.wezterm.lua"                    "$REPO_DIR/.wezterm.lua"
     cp "$wh/.glzr/glazewm/config.yaml"       "$WINDOWS_DIR/glazewm/config.yaml"
     cp "$wh/.glzr/zebar/config.yaml"         "$WINDOWS_DIR/zebar/config.yaml"
     cp "$wh/.glzr/zebar/script.js"           "$WINDOWS_DIR/zebar/script.js"
