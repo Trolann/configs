@@ -1,0 +1,61 @@
+---
+- name: Update configuration files
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '0644'
+  loop:
+    - { src: 'configs/.zshrc', dest: '{{ ansible_env.HOME }}/.zshrc' }
+    - { src: 'configs/.vimrc', dest: '{{ ansible_env.HOME }}/.vimrc' }
+    - { src: 'configs/.tmux.conf', dest: '{{ ansible_env.HOME }}/.tmux.conf' }
+
+- name: Sync Oh My Zsh configuration
+  ansible.builtin.copy:
+    src: "configs/.oh-my-zsh/"
+    dest: "{{ ansible_env.HOME }}/.oh-my-zsh/"
+    mode: '0644'
+
+- name: Sync Tmux configuration
+  ansible.builtin.copy:
+    src: "configs/.tmux/"
+    dest: "{{ ansible_env.HOME }}/.tmux/"
+    mode: '0644'
+
+- name: Sync GitHub Copilot configuration
+  ansible.builtin.copy:
+    src: "configs/.config/github_copilot/"
+    dest: "{{ ansible_env.HOME }}/.config/github_copilot/"
+    mode: '0644'
+
+- name: Sync Lazygit configuration
+  ansible.builtin.copy:
+    src: "configs/.config/lazygit/"
+    dest: "{{ ansible_env.HOME }}/.config/lazygit/"
+    mode: '0644'
+
+- name: Sync Neovim configuration
+  ansible.builtin.copy:
+    src: "configs/.config/nvim/"
+    dest: "{{ ansible_env.HOME }}/.config/nvim/"
+    mode: '0644'
+
+- name: Sync Tmux configuration in .config
+  ansible.builtin.copy:
+    src: "configs/.config/tmux/"
+    dest: "{{ ansible_env.HOME }}/.config/tmux/"
+    mode: '0644'
+
+- name: Reload zsh configuration
+  ansible.builtin.shell:
+    cmd: source {{ ansible_env.HOME }}/.zshrc
+  args:
+    executable: /bin/zsh
+
+- name: Reload tmux configuration
+  ansible.builtin.shell:
+    cmd: tmux source-file {{ ansible_env.HOME }}/.tmux.conf
+  ignore_errors: yes
+
+- name: Configuration sync message
+  ansible.builtin.debug:
+    msg: "Configuration sync complete!"

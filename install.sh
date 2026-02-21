@@ -124,6 +124,34 @@ sync_windows() {
     log "Synced. Run 'git diff' to review, then commit."
 }
 
+install_mux_server() {
+    local host="${1:-}"
+    [ -z "$host" ] && { err "Usage: ./install.sh install-mux <host>"; exit 1; }
+
+    log "Detecting OS on $host..."
+    local remote_os
+    remote_os=$(ssh "$host" "uname -s" 2>/dev/null)
+
+    case "$remote_os" in
+        Linux)
+            ssh "$host" "
+                curl -fsSL https://apt.fury.io/wez/gpg.key | sudo gpg --yes --dearmor -o /usr/share/keyrings/wezterm-fury.gpg
+                echo 'deb [signed-by=/usr/share/keyrings/wezterm-fury.gpg] https://apt.fury.io/wez/ * *' | sudo tee /etc/apt/sources.list.d/wezterm.list
+                sudo apt update && sudo apt install -y wezterm
+            "
+            ;;
+        Darwin)
+            ssh "$host" "brew install wezterm"
+            ;;
+        *)
+            err "Unsupported remote OS: $remote_os"
+            exit 1
+            ;;
+    esac
+
+    log "Done! Now set mux = true for '$host' in the hosts table in .wezterm.lua, then commit."
+}
+
 main() {
     echo "================================"
     echo "     Dotfiles Installer"
@@ -131,10 +159,11 @@ main() {
     echo ""
 
     case "${1:-}" in
-        linux)         setup_linux;   exit 0 ;;
-        windows)       setup_windows; exit 0 ;;
-        macos)         setup_macos;   exit 0 ;;
-        sync-windows)  sync_windows;  exit 0 ;;
+        linux)         setup_linux;                  exit 0 ;;
+        windows)       setup_windows;                exit 0 ;;
+        macos)         setup_macos;                  exit 0 ;;
+        sync-windows)  sync_windows;                 exit 0 ;;
+        install-mux)   install_mux_server "${2:-}";  exit 0 ;;
     esac
 
     echo "What would you like to set up?"

@@ -1,0 +1,181 @@
+---
+- name: Setup Environment
+  hosts: localhost
+  become: yes
+  vars:
+    setup_tailscale: "{{ setup_tailscale | default('n') }}"
+    node_version: "20.16.0"
+    npm_version: "10.8.1"
+    tailscale_hosts:
+      - fatherbird
+      - white-nest
+      - racknerd
+    required_packages:
+      - zsh
+      - unzip
+      - bat
+      - tmux
+      - lua5.4
+      - make
+      - python3-pip
+      - python3-pynvim
+    neovim_url: "https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz"
+    neovim_install_path: "/opt/nvim"
+    neovim_symlink: "/usr/local/bin/nvim"
+    oh_my_zsh_install_url: "https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
+    fnm_install_url: "https://fnm.vercel.app/install"
+    github_copilot_repo: "https://github.com/github/copilot.vim.git"
+    github_copilot_path: "{{ ansible_env.HOME }}/.config/github_copilot"
+    lazygit_install_url: "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    tmux_plugin_manager_repo: "https://github.com/tmux-plugins/tpm"
+    tmux_plugin_manager_path: "{{ ansible_env.HOME }}/.tmux/plugins/tpm"
+    files_to_remove:
+      - .bash_history
+      - .bash_logout
+      - .bashrc
+
+  tasks:
+    - name: Check if system is Debian/Ubuntu based
+      ansible.builtin.command: cat /etc/os-release
+      register: os_release
+      changed_when: false
+      tags: ['setup']
+
+    - name: Fail if not Debian/Ubuntu based
+      ansible.builtin.fail:
+        msg: "This playbook currently only supports Debian/Ubuntu based systems."
+      when: "'debian' not in os_release.stdout.lower() and 'ubuntu' not in os_release.stdout.lower()"
+      tags: ['setup']
+
+    - name: Update apt cache
+      ansible.builtin.apt:
+        update_cache: yes
+      tags: ['setup']
+
+    - name: Install Tailscale
+      ansible.builtin.shell:
+        cmd: curl -fsSL https://tailscale.com/install.sh | sh
+      when: setup_tailscale | lower == 'y'
+      tags: ['setup']
+
+    - name: Install required packages
+      ansible.builtin.apt:
+        name: "{{ required_packages }}"
+        state: present
+      tags: ['setup']
+
+    - name: Install Oh My Zsh
+      ansible.builtin.shell:
+        cmd: sh -c "$(curl -fsSL {{ oh_my_zsh_install_url }})" "" --unattended
+      args:
+        creates: "{{ ansible_env.HOME }}/.oh-my-zsh"
+      tags: ['setup']
+
+    - name: Install Neovim
+      ansible.builtin.shell:
+        cmd: |
+          curl -LO {{ neovim_url }}
+          sudo rm -rf {{ neovim_install_path }}
+          sudo tar -C /opt -xzf nvim-linux64.tar.gz
+          sudo ln -sf {{ neovim_install_path }}/bin/nvim {{ neovim_symlink }}
+      args:
+        creates: "{{ neovim_symlink }}"
+      tags: ['setup']
+
+    - name: Install fnm (Fast Node Manager)
+      ansible.builtin.shell:
+        cmd: curl -fsSL {{ fnm_install_url }} | bash
+      args:
+        creates: "{{ ansible_env.HOME }}/.fnm"
+      tags: ['setup']
+
+    - name: Install Node.js
+      ansible.builtin.shell:
+        cmd: |
+          source {{ ansible_env.HOME }}/.zshrc
+          fnm use --install-if-missing {{ node_version }}
+      args:
+        executable: /bin/zsh
+      tags: ['setup']
+
+    - name: Check Node.js version
+      ansible.builtin.shell:
+        cmd: node -v
+      register: node_version_output
+      changed_when: false
+      tags: ['setup']
+
+    - name: Check npm version
+      ansible.builtin.shell:
+        cmd: npm -v
+      register: npm_version_output
+      changed_when: false
+      tags: ['setup']
+
+    - name: Warn if Node.js or npm versions are incorrect
+      ansible.builtin.debug:
+        msg: "Warning: Installed versions (Node.js: {{ node_version_output.stdout }}, npm: {{ npm_version_output.stdout }}) do not match expected versions (Node.js: v{{ node_version }}, npm: {{ npm_version }})."
+      when: node_version_output.stdout != "v{{ node_version }}" or npm_version_output.stdout != npm_version
+      tags: ['setup']
+
+    - name: Install Copilot for Neovim
+      ansible.builtin.git:
+        repo: "{{ github_copilot_repo }}"
+        dest: "{{ github_copilot_path }}"
+      tags: ['setup']
+
+    - name: Install Lazygit
+      ansible.builtin.shell:
+        cmd: |
+          LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+          curl -Lo lazygit.tar.gz "{{ lazygit_install_url }}"
+          tar xf lazygit.tar.gz lazygit
+          sudo install lazygit /usr/local/bin
+      args:
+        creates: /usr/local/bin/lazygit
+      tags: ['setup']
+
+    - name: Install Tmux Plugin Manager
+      ansible.builtin.git:
+        repo: "{{ tmux_plugin_manager_repo }}"
+        dest: "{{ tmux_plugin_manager_path }}"
+      tags: ['setup']
+
+    - name: Ping Tailscale hosts
+      ansible.builtin.ping:
+        data: "Hello from Ansible"
+      register: ping_result
+      ignore_errors: yes
+      with_items: "{{ tailscale_hosts }}"
+      when: setup_tailscale | lower == 'y'
+      tags: ['setup']
+
+    - name: Warn about ping issues
+      ansible.builtin.debug:
+        msg: "Warning: Unable to ping {{ item.item }}."
+      when: setup_tailscale | lower == 'y' and item.failed
+      loop: "{{ ping_result.results }}"
+      tags: ['setup']
+
+    - name: Remove unnecessary files
+      ansible.builtin.file:
+        path: "{{ ansible_env.HOME }}/{{ item }}"
+        state: absent
+      with_items: "{{ files_to_remove }}"
+      tags: ['setup']
+
+    - name: Set zsh as default shell
+      ansible.builtin.user:
+        name: "{{ ansible_env.USER }}"
+        shell: /bin/zsh
+      tags: ['setup']
+
+    - name: Sync configurations
+      ansible.builtin.include_role:
+        name: sync_configs
+      tags: ['sync']
+
+    - name: Final message
+      ansible.builtin.debug:
+        msg: "Setup complete! Please restart your shell or run 'exec zsh' to apply all changes."
+      tags: ['setup']

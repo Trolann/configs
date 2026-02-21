@@ -202,7 +202,7 @@ keybindings:
 
   - commands: ['shell-exec C:/PROGRA~1/WezTerm/wezterm-gui.exe']
     bindings: ['alt+enter']
-  - commands: ['shell-exec C:/PROGRA~1/WezTerm/wezterm-gui.exe start --domain WSL:Ubuntu -- bash -c "ssh fb@fatherbird; exec bash"']
+  - commands: ['shell-exec C:/PROGRA~1/WezTerm/wezterm-gui.exe connect fatherbird']
     bindings: ['alt+shift+enter']
 
   # Focus the next/previous workspace defined in `workspaces` config.
