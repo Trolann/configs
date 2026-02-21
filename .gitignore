@@ -2,4 +2,20 @@
 *.log
 *.bak
 .tests
-debug
+
+# Claude Code — machine-specific / session files (not tracked)
+claude/history.jsonl
+claude/todos/
+claude/statsig/
+claude/debug/
+claude/plans/
+claude/projects/
+claude/session-env/
+claude/shell-snapshots/
+claude/backups/
+claude/cache/
+claude/file-history/
+claude/.update.lock
+claude/settings.local.json
+claude/ide/
+claude/plugins/

@@ -1,0 +1,172 @@
+# i3 config
+# Cross-platform keybinding reference (aligned with GlazeWM on Windows, Aerospace on macOS):
+#   Alt+h/j/k/l       = focus left/down/up/right
+#   Alt+Shift+h/j/k/l = move window left/down/up/right
+#   Alt+1-9            = switch to workspace
+#   Alt+Shift+1-9      = move window to workspace
+#   Alt+Enter          = open terminal
+#   Alt+d              = app launcher
+#   Alt+Shift+q        = close window
+#   Alt+r              = resize mode
+#   Alt+v              = split toggle
+#   Super+l            = lock screen
+#   Ctrl+\             = split pane vertical   (WezTerm)
+#   Ctrl+Alt+\         = split pane horizontal (WezTerm)
+#   Ctrl+Shift+h/l/k/j = navigate panes        (WezTerm)
+
+set $mod Mod1
+set $win Mod4
+set $bg-color 	         #2f343f
+set $inactive-bg-color   #2f343f
+set $text-color          #f3f4f5
+set $inactive-text-color #676E7D
+set $urgent-bg-color     #E53935
+default_border pixel 2
+focus_follows_mouse no
+set $refresh_i3status killall -SIGUSR1 refresh_i3status
+for_window [title="^zoom$"] floating enable
+for_window [class="libraryapp.LibraryUI"] floating enable
+for_window [class="libraryapp.LibraryUI"] border normal
+## Exception for firefox: normal border and title bars
+for_window [class="firefox"] border normal
+mouse_warping output
+font pango:JetBrainsMono Nerd Font 16
+set $ws1 "1"
+set $ws2 "2"
+set $ws3 "3"
+set $ws4 "4"
+set $ws5 "5"
+set $ws6 "6"
+set $ws7 "7"
+set $ws8 "8"
+set $ws9 "9"
+set $ws10 "10"
+exec --no-startup-id i3-msg 'workspace $ws1'
+
+# run things at start
+## built-ins
+exec --no-startup-id dex --autostart --environment i3
+exec --no-startup-id nm-applet
+## custom
+exec --no-startup-id xinput set-prop "ELAN0514:01 04F3:3153 Touchpad" "Synaptics Tap Action" 0, 0, 0, 0, 0, 0, 0
+exec --no-startup-id synclient HorizTwoFingerScroll=1
+exec --no-startup-id /home/tr/.config/i3/rclone.sh
+exec_always --no-startup-id xcompmgr
+exec_always --no-startup-id feh --bg-fill ~/Pictures/turtle.png
+exec --no-startup-id tailscale-systray
+exec --no-startup-id blueman-applet
+
+# keybinds
+bindsym $win+x exec --no-startup-id ~/.config/i3/power.sh
+bindsym $mod+m exec --no-startup-id ~/.config/i3/screenz.sh && restart
+bindsym $win+s exec --no-startup-id flatpak run dev.deedles.Trayscale
+bindsym $win+k exec ~/.config/i3/krusader.sh
+bindsym $mod+Shift+m exec --no-startup-id ~/.config/i3/disconnect-displays.sh
+bindsym $mod+Return exec wezterm
+bindsym $mod+c exec --no-startup-id copyq toggle
+bindsym $mod+Shift+q kill
+bindsym $mod+d exec rofi -show drun -lines 3 -eh 2 -width 100 -padding 800 -opacity "75" -bw 0 -bc "$bg-color" -bg "$bg-color" -fg "$text-color" -hlbg "$bg-color" -hlfg "#9575cd" -font "JetBrainsMono Nerd Font 16"
+bindsym $mod+r mode "resize"
+bindsym $win+l exec --no-startup-id i3lock
+bindsym $win+p exec --no-startup-id /home/tr/.local/share/JetBrains/Toolbox/bin/jetbrains-toolbox
+bindsym $mod+s exec --no-startup-id wezterm start -- bash -c "speedtest; read -p 'Press Enter to close'"
+bindsym Control+Shift+Escape exec --no-startup-id gnome-system-monitor
+bindsym XF86AudioRaiseVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ +2% && pactl list short sinks | grep bluez | cut -f1 | xargs -I {} pactl set-sink-volume {} +2% && $refresh_i3status
+bindsym XF86AudioLowerVolume exec --no-startup-id pactl set-sink-volume @DEFAULT_SINK@ -2% && pactl list short sinks | grep bluez | cut -f1 | xargs -I {} pactl set-sink-volume {} -2% && $refresh_i3status
+bindsym XF86AudioMute exec --no-startup-id pactl set-sink-mute @DEFAULT_SINK@ toggle && $refresh_i3status
+bindsym XF86AudioMicMute exec --no-startup-id pactl set-source-mute @DEFAULT_SOURCE@ toggle && $refresh_i3status
+bindsym XF86MonBrightnessUp exec --no-startup-id "sudo brightnessctl set +10%"
+bindsym XF86MonBrightnessDown exec --no-startup-id "sudo brightnessctl set 10%-"
+bindsym Print exec flameshot gui
+# change focus (hjkl aligned with GlazeWM/Aerospace)
+bindsym $mod+h focus left
+bindsym $mod+j focus down
+bindsym $mod+k focus up
+bindsym $mod+l focus right
+# alternatively, you can use the cursor keys:
+bindsym $mod+Left focus left
+bindsym $mod+Down focus down
+bindsym $mod+Up focus up
+bindsym $mod+Right focus right
+# move focused window
+bindsym $mod+Shift+h move left
+bindsym $mod+Shift+j move down
+bindsym $mod+Shift+k move up
+bindsym $mod+Shift+l move right
+# alternatively, you can use the cursor keys:
+bindsym $mod+Shift+Left move left
+bindsym $mod+Shift+Down move down
+bindsym $mod+Shift+Up move up
+bindsym $mod+Shift+Right move right
+# toggle tiling split direction
+bindsym $mod+v split toggle
+# enter fullscreen mode for the focused container
+bindsym $mod+Shift+f fullscreen toggle
+bindsym $mod+f exec --no-startup-id firefox
+# toggle tiling / floating
+bindsym $mod+Shift+space floating toggle
+# change focus between tiling / floating windows
+bindsym $mod+space focus mode_toggle
+# focus the parent container
+bindsym $mod+a focus parent
+# switch to workspace
+bindsym $mod+1 workspace number $ws1
+bindsym $mod+2 workspace number $ws2
+bindsym $mod+3 workspace number $ws3
+bindsym $mod+4 workspace number $ws4
+bindsym $mod+5 workspace number $ws5
+bindsym $mod+6 workspace number $ws6
+bindsym $mod+7 workspace number $ws7
+bindsym $mod+8 workspace number $ws8
+bindsym $mod+9 workspace number $ws9
+bindsym $mod+0 workspace number $ws10
+# move focused container to workspace
+bindsym $mod+Shift+1 move container to workspace number $ws1
+bindsym $mod+Shift+2 move container to workspace number $ws2
+bindsym $mod+Shift+3 move container to workspace number $ws3
+bindsym $mod+Shift+4 move container to workspace number $ws4
+bindsym $mod+Shift+5 move container to workspace number $ws5
+bindsym $mod+Shift+6 move container to workspace number $ws6
+bindsym $mod+Shift+7 move container to workspace number $ws7
+bindsym $mod+Shift+8 move container to workspace number $ws8
+bindsym $mod+Shift+9 move container to workspace number $ws9
+bindsym $mod+Shift+0 move container to workspace number $ws10
+# reload the configuration file
+bindsym $mod+Shift+c reload
+# restart i3 inplace (preserves your layout/session, can be used to upgrade i3)
+bindsym $mod+Shift+r restart
+# exit i3 (logs you out of your X session)
+bindsym $mod+Shift+e exec "i3-nagbar -t warning -m 'You pressed the exit shortcut. Do you really want to exit i3? This will end your X session.' -B 'Yes, exit i3' 'i3-msg exit'"
+
+# resize window (you can also use the mouse for that)
+mode "resize" {
+        bindsym h resize shrink width 10 px or 10 ppt
+        bindsym j resize grow height 10 px or 10 ppt
+        bindsym k resize shrink height 10 px or 10 ppt
+        bindsym l resize grow width 10 px or 10 ppt
+
+        bindsym Left resize shrink width 2 px or 2 ppt
+        bindsym Down resize grow height 2 px or 2 ppt
+        bindsym Up resize shrink height 2 px or 2 ppt
+        bindsym Right resize grow width 2 px or 2 ppt
+
+        # back to normal: Enter or Escape or $mod+r
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+        bindsym $mod+r mode "default"
+}
+
+bar {
+        status_command i3status -c /home/$USER/.config/i3/i3status.conf
+        position top
+        colors {
+                statusline #ffffff
+                background #343a4f
+                separator  #282828
+
+                #               border  bg      text
+                focused_workspace  #009933 #009933 #000000
+                active_workspace   #515151 #515151 #BBBBBB
+                inactive_workspace #0f1316 #0f1316 #BBBBBB
+        }
+}

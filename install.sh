@@ -4,6 +4,7 @@ set -e
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LINUX_DIR="$REPO_DIR/linux"
 WINDOWS_DIR="$REPO_DIR/windows"
+CLAUDE_DIR="$REPO_DIR/claude"
 
 GREEN='\033[0;32m'; YELLOW='\033[1;33m'; RED='\033[0;31m'; NC='\033[0m'
 log()  { echo -e "${GREEN}[+]${NC} $1"; }
@@ -45,10 +46,50 @@ setup_linux() {
     fi
 
     symlink "$LINUX_DIR/.zshrc"      "$HOME/.zshrc"
-    symlink "$LINUX_DIR/.gitconfig"  "$HOME/.gitconfig"
     symlink "$REPO_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
 
+    read -rp "Set up git config? (y/N): " git_choice
+    if [[ "${git_choice,,}" == "y" ]]; then
+        symlink "$LINUX_DIR/.gitconfig" "$HOME/.gitconfig"
+        log "Git config linked."
+    else
+        warn "Skipping git config — set up manually if needed."
+    fi
+
+    # i3 (desktop only — skip on headless)
+    if command -v i3 &>/dev/null || [ -d "$HOME/.config/i3" ]; then
+        log "Setting up i3 config..."
+        mkdir -p "$HOME/.config/i3"
+        symlink "$LINUX_DIR/i3/config"               "$HOME/.config/i3/config"
+        symlink "$LINUX_DIR/i3/i3status.conf"        "$HOME/.config/i3/i3status.conf"
+        symlink "$LINUX_DIR/i3/power.sh"             "$HOME/.config/i3/power.sh"
+        symlink "$LINUX_DIR/i3/screenz.sh"           "$HOME/.config/i3/screenz.sh"
+        symlink "$LINUX_DIR/i3/screenz2.sh"          "$HOME/.config/i3/screenz2.sh"
+        symlink "$LINUX_DIR/i3/disconnect-displays.sh" "$HOME/.config/i3/disconnect-displays.sh"
+        symlink "$LINUX_DIR/i3/krusader.sh"          "$HOME/.config/i3/krusader.sh"
+        symlink "$LINUX_DIR/i3/rclone.sh"            "$HOME/.config/i3/rclone.sh"
+        symlink "$LINUX_DIR/i3/pycharm_launch.sh"    "$HOME/.config/i3/pycharm_launch.sh"
+        log "i3 config linked."
+    else
+        warn "i3 not found — skipping i3 config (headless machine)."
+    fi
+
+    setup_claude
+
     log "Linux dotfiles done."
+}
+
+setup_claude() {
+    log "Setting up Claude Code configs..."
+    mkdir -p "$HOME/.claude/commands"
+    symlink "$CLAUDE_DIR/CLAUDE.md"    "$HOME/.claude/CLAUDE.md"
+    symlink "$CLAUDE_DIR/settings.json" "$HOME/.claude/settings.json"
+    # Symlink each custom command individually so machine-specific commands can coexist
+    for cmd in "$CLAUDE_DIR/commands"/*; do
+        [ -f "$cmd" ] && [ "$(basename "$cmd")" != ".gitkeep" ] && \
+            symlink "$cmd" "$HOME/.claude/commands/$(basename "$cmd")"
+    done
+    log "Claude Code configs linked."
 }
 
 setup_windows() {
@@ -95,8 +136,18 @@ setup_macos() {
 
     symlink "$REPO_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
 
+    read -rp "Set up git config? (y/N): " git_choice
+    if [[ "${git_choice,,}" == "y" ]]; then
+        symlink "$LINUX_DIR/.gitconfig" "$HOME/.gitconfig"
+        log "Git config linked."
+    else
+        warn "Skipping git config — set up manually if needed."
+    fi
+
+    setup_claude
+
     # TODO: add macOS-specific configs to macos/ and symlink them here
-    warn "Only WezTerm configured for macOS so far — add more to macos/ as needed."
+    warn "Add more macOS configs to macos/ as needed."
 }
 
 sync_windows() {

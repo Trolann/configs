@@ -1,0 +1,117 @@
+ vim:ts=4:sw=4:et
+{
+    "border": "pixel",
+    "current_border_width": 2,
+    "floating": "auto_off",
+    "geometry": {
+       "height": 1011,
+       "width": 1906,
+       "x": 1920,
+       "y": 3
+    },
+    "marks": [],
+    "name": "teachers-coach-teachers – users",
+    "percent": 0.66,
+    "swallows": [
+       {
+        "class": "^jetbrains\\-pycharm$",
+        "instance": "^jetbrains\\-pycharm$",
+        "machine": "^trevors\\-computer$",
+        "title": "^teachers\\-coach\\-teachers\\ \\–\\ users$"
+       }
+    ],
+    "type": "con"
+}
+
+{
+     splith split container with 3 children
+    "border": "pixel",
+    "floating": "auto_off",
+    "layout": "splith",
+    "marks": [],
+    "percent": 0.34,
+    "type": "con",
+    "nodes": [
+        {
+             splitv split container with 1 children
+            "border": "pixel",
+            "floating": "auto_off",
+            "layout": "splitv",
+            "marks": [],
+            "percent": 0.435569358178054,
+            "type": "con",
+            "nodes": [
+                {
+                    "border": "pixel",
+                    "current_border_width": 2,
+                    "floating": "auto_off",
+                    "geometry": {
+                       "height": 600,
+                       "width": 800,
+                       "x": 0,
+                       "y": 0
+                    },
+                    "marks": [],
+                    "name": "trevors-computer",
+                    "percent": 1,
+                    "swallows": [
+                       {
+                        "class": "^Alacritty$",
+                        "instance": "^Alacritty$",
+                        "machine": "^trevors\\-computer$",
+                        "title": "^trevors\\-computer$"
+                       }
+                    ],
+                    "type": "con"
+                }
+            ]
+        },
+        {
+            "border": "pixel",
+            "current_border_width": 2,
+            "floating": "auto_off",
+            "geometry": {
+               "height": 600,
+               "width": 800,
+               "x": 0,
+               "y": 0
+            },
+            "marks": [],
+            "name": "trevors-computer",
+            "percent": 0.161097308488613,
+            "swallows": [
+               {
+                "class": "^Alacritty$",
+                "instance": "^Alacritty$",
+                "machine": "^trevors\\-computer$",
+                "title": "^trevors\\-computer$"
+               }
+            ],
+            "type": "con"
+        },
+        {
+            "border": "normal",
+            "current_border_width": 2,
+            "floating": "user_off",
+            "geometry": {
+               "height": 446,
+               "width": 1580,
+               "x": 3768,
+               "y": 962
+            },
+            "marks": [],
+            "name": "Services",
+            "percent": 0.403333333333333,
+            "swallows": [
+               {
+                "class": "^jetbrains\\-pycharm$",
+                "instance": "^jetbrains\\-pycharm$",
+                "machine": "^trevors\\-computer$",
+                "title": "^Services$"
+               }
+            ],
+            "type": "con"
+        }
+    ]
+}
+
