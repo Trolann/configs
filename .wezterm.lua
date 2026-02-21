@@ -155,6 +155,13 @@ config.tab_bar_at_bottom = true
 
 -- General
 config.automatically_reload_config = true
+wezterm.on('gui-startup', function(cmd)
+  local _, _, window = wezterm.mux.spawn_window(cmd or {})
+  window:gui_window():perform_action(
+    wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
+    window:gui_window():active_pane()
+  )
+end)
 config.inactive_pane_hsb = { saturation = 1.0, brightness = 1.0 }
 config.window_background_opacity = 1.0
 config.window_close_confirmation = "NeverPrompt"
