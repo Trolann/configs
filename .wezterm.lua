@@ -3,7 +3,7 @@ local config = wezterm.config_builder()
 
 -- Remote hosts. Set mux = true after running: ./install.sh install-mux <name>
 local hosts = {
-  { name = 'fatherbird', address = 'fatherbird', user = 'fb', mux = false },
+  { name = 'fatherbird', address = 'fatherbird', user = 'fb', mux = true },
   -- { name = 'workserver', address = '10.0.0.5', user = 'me', mux = true },
 }
 
@@ -130,6 +130,12 @@ config.keys = {
         key = "c",
         mods = "CTRL|SHIFT",
         action = wezterm.action({ CopyTo = "ClipboardAndPrimarySelection" }),
+    },
+    -- Domain launcher: connect to SSH hosts, WSL, etc.
+    {
+        key = "l",
+        mods = "CTRL|SHIFT|ALT",
+        action = wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
     },
 }
 
