@@ -1,10 +1,13 @@
 local wezterm = require 'wezterm'
 local config = wezterm.config_builder()
 
--- Remote hosts. Set mux = true after running: ./install.sh install-mux <name>
+-- Remote hosts:
+--   SSH hosts:  { name, address, user, mux = true/false }
+--   Exec hosts: { name, exec_cmd = { 'command', 'arg1', ... } }
+--     exec_cmd runs per tab — works with tools like ondemand that cache auth sessions
 local hosts = {
   { name = 'fatherbird', address = 'fatherbird', user = 'fb', mux = true },
-  -- { name = 'workserver', address = '10.0.0.5', user = 'me', mux = true },
+  -- { name = 'devserver', exec_cmd = { 'ondemand', 'connect', 'devserver-hostname' } },
 }
 
 local is_windows = wezterm.target_triple:find('windows') ~= nil
@@ -17,16 +20,25 @@ if is_windows then
 end
 
 local ssh_domains = {}
+local exec_domains = {}
 for _, host in ipairs(hosts) do
-  table.insert(ssh_domains, {
-    name           = host.name,
-    remote_address = host.address,
-    username       = host.user,
-    multiplexing   = host.mux and 'WezTerm' or 'None',
-    assume_shell   = 'Posix',
-  })
+  if host.exec_cmd then
+    table.insert(exec_domains, wezterm.exec_domain(host.name, function(cmd)
+      cmd.args = host.exec_cmd
+      return cmd
+    end))
+  else
+    table.insert(ssh_domains, {
+      name           = host.name,
+      remote_address = host.address,
+      username       = host.user,
+      multiplexing   = host.mux and 'WezTerm' or 'None',
+      assume_shell   = 'Posix',
+    })
+  end
 end
 config.ssh_domains = ssh_domains
+config.exec_domains = exec_domains
 
 config.font = wezterm.font 'JetBrains Mono'
 config.wsl_domains = wezterm.default_wsl_domains()
@@ -155,12 +167,18 @@ config.tab_bar_at_bottom = true
 
 -- General
 config.automatically_reload_config = true
-wezterm.on('gui-startup', function(cmd)
-  local _, _, window = wezterm.mux.spawn_window(cmd or {})
-  window:gui_window():perform_action(
-    wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
-    window:gui_window():active_pane()
-  )
+
+-- Show domain launcher once per new window
+local launched_windows = {}
+wezterm.on('update-status', function(window, pane)
+  local id = tostring(window:window_id())
+  if not launched_windows[id] then
+    launched_windows[id] = true
+    window:perform_action(
+      wezterm.action.ShowLauncherArgs { flags = 'FUZZY|DOMAINS' },
+      pane
+    )
+  end
 end)
 config.inactive_pane_hsb = { saturation = 1.0, brightness = 1.0 }
 config.window_background_opacity = 1.0
