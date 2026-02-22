@@ -47,6 +47,7 @@ setup_linux() {
 
     symlink "$LINUX_DIR/.zshrc"      "$HOME/.zshrc"
     symlink "$REPO_DIR/.wezterm.lua" "$HOME/.wezterm.lua"
+    symlink "$REPO_DIR/tmux/tmux.conf" "$HOME/.tmux.conf"
 
     read -rp "Set up git config? (y/N): " git_choice
     if [[ "${git_choice,,}" == "y" ]]; then
