@@ -1,6 +1,8 @@
 .oh-my-zsh/
 *.log
 *.bak
+*.local
+*.local.*
 .tests
 
 # Claude Code — machine-specific / session files (not tracked)

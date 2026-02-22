@@ -5,3 +5,7 @@
 	defaultBranch = main
 [push]
 	autoSetupRemote = True
+
+# Machine-specific overrides (work email, signing key, etc.)
+[include]
+	path = ~/.gitconfig.local

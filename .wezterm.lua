@@ -7,8 +7,19 @@ local config = wezterm.config_builder()
 --     exec_cmd runs per tab — works with tools like ondemand that cache auth sessions
 local hosts = {
   { name = 'fatherbird', address = 'fatherbird', user = 'fb', mux = true },
-  -- { name = 'devserver', exec_cmd = { 'ondemand', 'connect', 'devserver-hostname' } },
 }
+
+-- Machine-specific hosts (~/.wezterm.local.lua, not tracked in git)
+-- Example file contents:
+--   return {
+--     { name = 'devserver', exec_cmd = { 'ondemand', 'connect', 'devserver' } },
+--   }
+local ok, local_hosts = pcall(dofile, wezterm.home_dir .. '/.wezterm.local.lua')
+if ok and type(local_hosts) == 'table' then
+  for _, host in ipairs(local_hosts) do
+    table.insert(hosts, host)
+  end
+end
 
 local is_windows = wezterm.target_triple:find('windows') ~= nil
 

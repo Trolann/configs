@@ -101,16 +101,51 @@ What's NOT tracked (machine-specific):
 
 To add machine-specific commands that won't sync, drop them directly in `~/.claude/commands/` (don't put them in the repo's `claude/commands/`).
 
+## Machine-Specific Overrides (`.local` files)
+
+Every shared config sources a `.local` file that is gitignored and never committed.
+Use these for work-specific aliases, paths, keybindings, credentials, etc.
+
+| Shared config | Local override | Format |
+|---|---|---|
+| `~/.zshrc` | `~/.zshrc.local` | Shell script — aliases, exports, PATH additions |
+| `~/.gitconfig` | `~/.gitconfig.local` | Git config — `[user] email = work@company.com` |
+| `~/.wezterm.lua` | `~/.wezterm.local.lua` | Lua — `return { { name = 'dev', exec_cmd = {...} } }` |
+| `~/.tmux.conf` | `~/.tmux.local.conf` | tmux config — extra bindings, status bar tweaks |
+| `~/.claude/CLAUDE.md` | `~/.claude/CLAUDE.md.local` | Markdown — machine-specific Claude instructions |
+| `~/.claude/settings.json` | `~/.claude/settings.local.json` | JSON — machine-specific permissions |
+
+Example `~/.zshrc.local` for a Meta work Mac:
+```bash
+alias dev='ondemand connect mydevserver'
+export PATH="/opt/homebrew/bin:$PATH"
+```
+
+Example `~/.wezterm.local.lua` for a Meta work Mac:
+```lua
+return {
+  { name = 'devserver', exec_cmd = { 'ondemand', 'connect', 'mydevserver' } },
+}
+```
+
+Example `~/.gitconfig.local` for work:
+```gitconfig
+[user]
+    email = trevorm@meta.com
+```
+
 ## Adding a New Machine
 
-1. Clone repo: `git clone git@github.com:Trolann/configs.git ~/.config/configs`
-2. Run: `~/.config/configs/bootstrap.sh`
-3. For headless servers, bootstrap.sh detects no i3 and skips the WM configs automatically.
-4. For WezTerm SSH multiplexing on a remote host: `./install.sh install-mux <hostname>`, then set `mux = true` for that host in `.wezterm.lua`.
+1. Clone repo: `git clone https://github.com/Trolann/configs.git ~/.config/configs`
+2. Run: `~/.config/configs/install.sh linux` (or `macos` / `windows`)
+3. Create `~/.zshrc.local`, `~/.wezterm.local.lua`, etc. for machine-specific config
+4. For headless servers, the installer auto-detects no i3 and skips WM configs
+5. For WezTerm SSH multiplexing: `./install.sh install-mux <hostname>`, then set `mux = true` in the hosts table
 
 ## What NOT to Do
 
 - Don't add neovim/lazygit configs here — not tracked intentionally
+- Don't commit `.local` files — they contain machine-specific or private config
 - Don't commit `claude/settings.local.json` — it has machine-specific permissions
 - Don't commit `claude/history.jsonl` or session data
 - Don't add tmux auto-launch back to `.zshrc` — use WezTerm multiplexing
